@@ -1,28 +1,37 @@
+function formatMessage(action, data) {
+  return {
+    extension: "blog-ext",
+    source: "content",
+    action,
+    data,
+  };
+}
+
+// Listen to messages from the application,
+// forward them to the background script
 window.addEventListener("message", (event) => {
-  console.log(event.data);
   // Only accept messages from the same frame
   if (event.source !== window) {
     return;
   }
 
-  var message = event.data;
+  const message = event.data;
 
   // Only accept messages that we know are ours
-  if (
-    typeof message !== "object" ||
-    message === null ||
-    (!!message.source && message.source !== "blog-ext")
-  ) {
+  if (message?.extension !== "blog-ext" || message?.source !== "application") {
     return;
   }
-  console.log("received in content");
 
-  console.log("sending from content");
-  browser.runtime.sendMessage(message);
+  browser.runtime.sendMessage(formatMessage(message.action, message.data));
 });
 
-browser.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-  console.log("in content");
-  console.log(request);
-  window.postMessage(request);
+// Listen to messages from the background script,
+// forward them to the application
+browser.runtime.onMessage.addListener((message) => {
+  // Only accept messages that we know are ours
+  if (message?.extension !== "blog-ext" || message?.source !== "background") {
+    return;
+  }
+
+  window.postMessage(formatMessage(message.action, message.data));
 });

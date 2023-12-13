@@ -1,34 +1,45 @@
 const connections = {};
 const latestState = {};
 
-browser.runtime.onConnect.addListener(function (port) {
-  // Listen for the panel to connect and save a reference to it
-  function extensionListener(message, sender, sendResponse) {
-    console.log(message);
-    if (message.name === "init") {
-      console.log("connected in background");
-      connections[message.tabId] = port;
-      port.postMessage({
-        messageType: "hydrate-state",
-        payload: latestState[message.tabId],
-      });
+function formatMessage(action, data) {
+  return {
+    extension: "blog-ext",
+    source: "background",
+    action,
+    data,
+  };
+}
+
+// Listen to messages from the dev tools panel,
+// and either respond or foward them to the content script
+browser.runtime.onConnect.addListener((port) => {
+  function extensionListener(message) {
+    // Only accept messages that we know are ours
+    if (message?.extension !== "blog-ext" || message?.source !== "panel") {
       return;
     }
 
-    if (message.name === "from-tool:reset") {
-      console.log("made it to reset state");
-      console.log(message, sender);
-      browser.tabs.sendMessage(message.tabId, {
-        messageAction: "from-tool:reset",
-        widgetId: message.widgetId,
-      });
+    // Listen for the panel to connect, save a reference to it
+    // and hydrate its state
+    if (message.action === "init") {
+      connections[message.data.tabId] = port;
+      port.postMessage(
+        formatMessage("hydrate-state", latestState[message.data.tabId])
+      );
+      return;
     }
+
+    // forward everything else
+    browser.tabs.sendMessage(
+      message.data.tabId,
+      formatMessage(message.action, message.data)
+    );
   }
 
   // Listen to messages sent from the DevTools page
   port.onMessage.addListener(extensionListener);
 
-  port.onDisconnect.addListener(function (port) {
+  port.onDisconnect.addListener((port) => {
     port.onMessage.removeListener(extensionListener);
 
     var tabs = Object.keys(connections);
@@ -41,40 +52,39 @@ browser.runtime.onConnect.addListener(function (port) {
   });
 });
 
-// Receive message from content script and
-// relay to the devTools page for the current tab
-browser.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-  // Only listen to message for the Blog Extension
-  if (request?.source !== "blog-ext") {
+// Listen to messages from the content script,
+// save data for when/if the dev tools panel connects,
+// and forward messages to the dev tools panel
+browser.runtime.onMessage.addListener((message, sender) => {
+  // Only accept messages that we know are ours
+  if (message?.extension !== "blog-ext" || message?.source !== "content") {
     return;
   }
-
-  console.log("received in background");
-  console.log(request);
-  console.log(sender);
 
   // Messages from content scripts should have sender.tab set
   if (sender.tab) {
     const tabId = sender.tab.id;
 
     // store state for when dev tool panel connects
-    if (request.messageType === "rendered") {
+    if (message.action === "rendered") {
       if (!latestState[tabId]) {
         latestState[tabId] = {};
       }
 
-      latestState[tabId][request.payload.widgetId] = request.payload.count;
-    } else if (request.messageType === "removed") {
+      latestState[tabId][message.data.widgetId] = message.data.count;
+    } else if (message.action === "removed") {
       if (!latestState[tabId]) {
         return;
       }
 
-      delete latestState[tabId][request.payload.widgetId];
+      delete latestState[tabId][message.data.widgetId];
     }
 
+    // foward messages
     if (tabId in connections) {
-      console.log("sending from background");
-      connections[tabId].postMessage(request);
+      connections[tabId].postMessage(
+        formatMessage(message.action, message.data)
+      );
     } else {
       console.log("Tab not found in connection list.");
     }

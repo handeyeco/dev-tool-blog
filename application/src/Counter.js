@@ -1,34 +1,39 @@
 import { useEffect } from "react";
-import sendToExtension from "./sendToExtension";
+
+function postMessage(action, data) {
+  window.postMessage({
+    extension: "blog-ext",
+    source: "application",
+    action,
+    data,
+  });
+}
 
 export default function Counter({ count, onChange, name }) {
   const widgetId = `counter-${name}`;
 
-  useEffect(() => {
-    sendToExtension("rendered", {
-      widgetId,
-      count,
-    });
+  // Listen to messages from the content script
+  function handleMessage(event) {
+    const message = event.data;
 
-    function handleMessage(message) {
-      console.log("In application");
-      console.log(message);
-
-      const messageWidgetId = message?.data?.widgetId;
-      const messageAction = message?.data?.messageAction;
-      console.log({ messageWidgetId, messageAction });
-      if (messageWidgetId === widgetId && messageAction === "from-tool:reset") {
-        onChange(0);
-      }
+    // Only accept messages that we know are ours
+    if (message?.extension !== "blog-ext" || message?.source !== "content") {
+      return;
     }
 
+    const messageWidgetId = message.data.widgetId;
+    const messageAction = message.action;
+    if (messageWidgetId === widgetId && messageAction === "reset") {
+      onChange(0);
+    }
+  }
+
+  useEffect(() => {
+    postMessage("rendered", { widgetId, count });
     window.addEventListener("message", handleMessage);
 
     return () => {
-      sendToExtension("removed", {
-        widgetId,
-      });
-
+      postMessage("removed", { widgetId });
       window.removeEventListener("message", handleMessage);
     };
   });

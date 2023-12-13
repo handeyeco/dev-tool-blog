@@ -1,42 +1,50 @@
 let widgets = {};
 let renderTimeout;
 
+function formatMessage(action, data) {
+  return {
+    extension: "blog-ext",
+    source: "panel",
+    action,
+    data,
+  };
+}
+
 // Create a connection to the background script
 const backgroundPageConnection = browser.runtime.connect({
   name: "panel",
 });
 
-// Send an init message back
-backgroundPageConnection.postMessage({
-  name: "init",
-  tabId: browser.devtools.inspectedWindow.tabId,
-});
-
 // Listen for messages from background script
 backgroundPageConnection.onMessage.addListener((request) => {
-  console.log(request);
-  switch (request.messageType) {
+  switch (request.action) {
     case "rendered":
-      widgets[request.payload.widgetId] = request.payload.count;
+      widgets[request.data.widgetId] = request.data.count;
       break;
     case "removed":
-      delete widgets[request.payload.widgetId];
+      delete widgets[request.data.widgetId];
       break;
     case "hydrate-state":
-      widgets = { ...widgets, ...request.payload };
+      widgets = { ...widgets, ...request.data };
       break;
   }
 
   render();
 });
 
-function handleReset(widgetId) {
-  console.log(widgetId);
-  backgroundPageConnection.postMessage({
-    name: "from-tool:reset",
-    widgetId,
-    tabId: browser.devtools.inspectedWindow.tabId,
-  });
+// Send an init message back to background script
+// to request existing state
+backgroundPageConnection.postMessage(
+  formatMessage("init", { tabId: browser.devtools.inspectedWindow.tabId })
+);
+
+function handleClickReset(widgetId) {
+  backgroundPageConnection.postMessage(
+    formatMessage("reset", {
+      widgetId,
+      tabId: browser.devtools.inspectedWindow.tabId,
+    })
+  );
 }
 
 function render() {
@@ -55,7 +63,7 @@ function render() {
 
       const button = document.createElement("button");
       button.innerText = "Reset";
-      button.addEventListener("click", () => handleReset(widgetId));
+      button.addEventListener("click", () => handleClickReset(widgetId));
       container.appendChild(button);
     });
   }, 50);
