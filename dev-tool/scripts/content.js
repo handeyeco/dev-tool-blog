@@ -7,8 +7,10 @@ function formatMessage(action, data) {
   };
 }
 
-// Listen to messages from the application,
-// forward them to the background script
+/**
+ * Listen to messages from the application,
+ * forward them to the background script
+ */
 window.addEventListener("message", (event) => {
   // Only accept messages from the same frame
   if (event.source !== window) {
@@ -25,8 +27,10 @@ window.addEventListener("message", (event) => {
   browser.runtime.sendMessage(formatMessage(message.action, message.data));
 });
 
-// Listen to messages from the background script,
-// forward them to the application
+/**
+ * Listen to messages from the background script,
+ * forward them to the application
+ */
 browser.runtime.onMessage.addListener((message) => {
   // Only accept messages that we know are ours
   if (message?.extension !== "blog-ext" || message?.source !== "background") {

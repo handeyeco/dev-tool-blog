@@ -10,12 +10,16 @@ function formatMessage(action, data) {
   };
 }
 
-// Create a connection to the background script
+/**
+ * Create a connection to the background script
+ */
 const backgroundPageConnection = browser.runtime.connect({
   name: "panel",
 });
 
-// Listen for messages from background script
+/**
+ * Listen for messages from background script
+ */
 backgroundPageConnection.onMessage.addListener((request) => {
   switch (request.action) {
     case "rendered":
@@ -32,12 +36,19 @@ backgroundPageConnection.onMessage.addListener((request) => {
   render();
 });
 
-// Send an init message back to background script
-// to request existing state
+/**
+ * Send an init message back to background script
+ * to request existing state
+ */
 backgroundPageConnection.postMessage(
-  formatMessage("init", { tabId: browser.devtools.inspectedWindow.tabId })
+  formatMessage("init", {
+    tabId: browser.devtools.inspectedWindow.tabId,
+  })
 );
 
+/**
+ * Callback for UI button press
+ */
 function handleClickReset(widgetId) {
   backgroundPageConnection.postMessage(
     formatMessage("reset", {
@@ -47,11 +58,17 @@ function handleClickReset(widgetId) {
   );
 }
 
+/**
+ * Panel UI renderer
+ */
 function render() {
   if (renderTimeout) {
     clearTimeout(renderTimeout);
   }
 
+  // debouncing since Counter's useEffect triggers a
+  // "removed" message right before rerendering which
+  // caused flickering
   renderTimeout = setTimeout(() => {
     const container = document.getElementById("content");
     container.innerHTML = "";
@@ -62,7 +79,7 @@ function render() {
       container.appendChild(p);
 
       const button = document.createElement("button");
-      button.innerText = "Reset";
+      button.innerText = `Reset ${widgetId}`;
       button.addEventListener("click", () => handleClickReset(widgetId));
       container.appendChild(button);
     });

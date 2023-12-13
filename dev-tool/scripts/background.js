@@ -10,8 +10,10 @@ function formatMessage(action, data) {
   };
 }
 
-// Listen to messages from the dev tools panel,
-// and either respond or foward them to the content script
+/**
+ * Listen to messages from the dev tools panel,
+ * and either respond or foward them to the content script
+ */
 browser.runtime.onConnect.addListener((port) => {
   function extensionListener(message) {
     // Only accept messages that we know are ours
@@ -52,9 +54,11 @@ browser.runtime.onConnect.addListener((port) => {
   });
 });
 
-// Listen to messages from the content script,
-// save data for when/if the dev tools panel connects,
-// and forward messages to the dev tools panel
+/**
+ * Listen to messages from the content script,
+ * save data for when/if the dev tools panel connects,
+ * and forward messages to the dev tools panel
+ */
 browser.runtime.onMessage.addListener((message, sender) => {
   // Only accept messages that we know are ours
   if (message?.extension !== "blog-ext" || message?.source !== "content") {
