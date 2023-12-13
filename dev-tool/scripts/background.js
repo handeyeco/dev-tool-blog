@@ -21,7 +21,7 @@ browser.runtime.onConnect.addListener((port) => {
       return;
     }
 
-    // Listen for the panel to connect, save a reference to it
+    // Listen for the panel to connect, save a reference to it,
     // and hydrate its state
     if (message.action === "init") {
       connections[message.data.tabId] = port;
@@ -31,7 +31,7 @@ browser.runtime.onConnect.addListener((port) => {
       return;
     }
 
-    // forward everything else
+    // forward everything else to the content script
     browser.tabs.sendMessage(
       message.data.tabId,
       formatMessage(message.action, message.data)

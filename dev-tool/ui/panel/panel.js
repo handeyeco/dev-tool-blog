@@ -21,6 +21,11 @@ const backgroundPageConnection = browser.runtime.connect({
  * Listen for messages from background script
  */
 backgroundPageConnection.onMessage.addListener((request) => {
+  // Only accept messages that we know are ours
+  if (message?.extension !== "blog-ext" || message?.source !== "background") {
+    return;
+  }
+
   switch (request.action) {
     case "rendered":
       widgets[request.data.widgetId] = request.data.count;
