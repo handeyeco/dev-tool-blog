@@ -12,6 +12,6 @@ This is the code example for a blog post called "Communication for Custom Develo
 
 ## Dev Tools
 
-`dev-tool` is the browser extension.
+`/dev-tool` is the browser extension.
 
 [Use this guide to temporarily install this extension.](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Your_first_WebExtension#installing)
