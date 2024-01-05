@@ -4,6 +4,8 @@
 
 _By Matthew Curtis, Senior Software Engineer_
 
+[See the official post on the Khan Academy blog.](https://blog.khanacademy.org/communication-for-custom-developer-tools/)
+
 ## Background
 
 Hey 👋 I’m Matthew and I work on a project called [Perseus](https://github.com/Khan/perseus). It’s an open-source project that’s responsible for the exercise experience at Khan Academy. If you’ve ever answered a question using the radio widget or typed in an equation using our math keypad, you’ve used Perseus!
