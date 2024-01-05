@@ -1,6 +1,6 @@
 # Communication for Custom Developer Tools
 
-![Splash](spash.png)
+![Splash](splash.png)
 
 _By Matthew Curtis, Senior Software Engineer_
 
