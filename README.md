@@ -1,6 +1,6 @@
 # Communication for Custom Developer Tools (Code)
 
-This is the code example for a blog post called "Communication for Custom Developer Tools" that shares some notes learned during a recent hackathon. The idea is to create a custom browser extension that extends developer tools for easier, less intrusive debugging of a host application.
+This is the code example for a blog post called [Communication for Custom Developer Tools](https://blog.khanacademy.org/communication-for-custom-developer-tools/) that shares some notes learned during a recent hackathon. The idea is to create a custom browser extension that extends developer tools for easier, less intrusive debugging of a host application.
 
 ## Application
 
